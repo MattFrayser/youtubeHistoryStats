@@ -1,6 +1,6 @@
 const fileInput = document.getElementById('fileInput')
-const loading = document.getElementById('loading')
 const statsContent = document.getElementById('statsContent')
+const uploadSection = document.querySelector('.upload-section')
 
 let charts = {};
 
@@ -8,19 +8,19 @@ fileInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    loading.style.display = 'block';
+    console.log('File selected:', file.name, file.size, 'bytes');
+    uploadSection.style.display = 'none';
     statsContent.style.display = 'none';
 
     try {
         const text = await file.text();
         const data = JSON.parse(text);
+        console.log('JSON parsed successfully, entries:', data.length);
         process(data);
     } catch (err) {
         console.error(err);
-    } finally {
-        loading.style.display = 'none';
     }
-)};
+});
 
 function process(rawData) {
     
@@ -32,47 +32,51 @@ function process(rawData) {
     // format data
     const videos = rawData
         .filter(v =>
-            v.title && v.titleUrl &&
-            !v.details?.some(d => d.name === 'From Google Ads') && !v.subtitles?.[0]?.name
+            v.title && v.titleUrl && v.subtitles?.[0]?.name &&
+            !v.details?.some(d => d.name === 'From Google Ads')
         )
         .map(v => ({
             t: new Date(v.time),
-            c: v.subtitles[0]?.name,
+            c: v.subtitles[0].name,
         }));
-    
-    const stats = calcStats(videos, adsCount);
+    console.log('Videos after filtering:', videos.length);
+    const stats = calculateStats(videos, adsCount);
+
+    displayStats(stats);
     // clear from mem 
     rawData = null 
 }
 
 function calculateStats(videos, adsCount) {
-    const channels = {}
-    const monthly = {}
-    const weekly = {}
-    const hourly = {}
+    const channelCount = {};
+    const monthlyCount = {};
+    const dayOfWeekCount = Array(7).fill(0);
+    const dayOfWeekOccurrences = Array(7).fill(0);
+    const hourlyCount = Array(24).fill(0);
+    const uniqueDays = new Set();
 
     videos.forEach(v => {
-        channels[v.c] = (channelCount[v.c] || 0) + 1
+        channelCount[v.c] = (channelCount[v.c] || 0) + 1;
 
         const monthKey = `${v.t.getFullYear()}-${String(v.t.getMonth() + 1).padStart(2, '0')}`;
         monthlyCount[monthKey] = (monthlyCount[monthKey] || 0) + 1;
 
         const dayOfWeek = v.t.getDay();
         dayOfWeekCount[dayOfWeek]++;
-        
+
         const dayKey = `${v.t.getFullYear()}-${v.t.getMonth()}-${v.t.getDate()}-${dayOfWeek}`;
         uniqueDays.add(dayKey);
-        
+
         hourlyCount[v.t.getHours()]++;
     });
 
-    uniqueDays.ForEach(key => {
+    uniqueDays.forEach(key => {
         const dayOfWeek = parseInt(key.split('-')[3]);
-        dayOfWeekOccurences[dayOfWeek]++;
+        dayOfWeekOccurrences[dayOfWeek]++;
     });
 
-    const dayOfWeekAverage = dayOfWeekCount.map((count, i) => 
-        dayOfWeekOccurrences[i] > 0 ? count / dayOfWeekOccurrences[i] : 0
+    const dayOfWeekAverage = dayOfWeekCount.map((count, i) =>
+        dayOfWeekOccurrences[i] > 0 ? Math.floor(count / dayOfWeekOccurrences[i]) : 0
     );
 
     const sortedChannels = Object.entries(channelCount)
@@ -96,4 +100,12 @@ function calculateStats(videos, adsCount) {
         dayOfWeek: dayOfWeekAverage,
         hourly: hourlyCount
     };
+}
+
+function displayStats(stats) {
+    document.getElementById('totalVideos').textContent = stats.total.toLocaleString();
+    document.getElementById('uniqueChannels').textContent = stats.uniqueChannels.toLocaleString();
+    document.getElementById('totalAds').textContent = stats.ads.toLocaleString();
+
+    statsContent.style.display = 'block';
 }

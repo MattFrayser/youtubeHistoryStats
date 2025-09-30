@@ -9,18 +9,55 @@
 </head>
 <body>
     <header>
+        <div class="navbar">
+            <h1> Youtube History Statistics </h1>
+            <p> Privacy Policy ⌄</p>
 
-        <h1> Youtube History </h1>
-
-        <div class="drop-zone">
-            <h2> Drop your 'watch-history.json' file here </h2>
-            <p> All data will remain private in your browser </p>
-            <input type="file" id="fileInput" accept=".json" style="display: none;">
         </div>
 
     </header>
     <main>
+        <!--Upload Section-->
+        <div>
+            <div class="upload-section">
+                <input type="file" id="fileInput" accept=".json">
+                <label for="fileInput">Upload watch-history.json</label>
+                <p> All data will remain private in your browser.</p>
+            </div>
+            <div class="tutorial">
+                <span class="step"> Navigate to Takeout </span>
+                <span class="step"> Deselect all </span>
+                <span class="step"> Select YouTube and Youtube Music </span>
+                <span class="step"> Click all youtube data included </span>
+                <span class="step"> Deselect all, but history</span>
+                <span class="step"> Click multiple formats</span>
+                <span class="step"> Change history to JSON</span>
+                <span class="step"> Next step</span>
+                <span class="step"> Export</span>
+            </div>
+        </div>
+
+        <!--Stats-->   
+        <div id="statsContent" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalVideos">0</div>
+                    <div class="stat-label">Total Videos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="uniqueChannels">0</div>
+                    <div class="stat-label">Unique Channels</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalAds">0</div>
+                    <div class="stat-label">Ads Watched</div>
+                </div>
+            </div>
+        </div>
+
+
     </main>
+    <script src="scripts.js"></script>
 </body>
 </html>
 

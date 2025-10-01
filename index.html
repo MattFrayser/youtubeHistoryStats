@@ -12,7 +12,7 @@
 <body>
     <header>
         <div class="navbar">
-            <h1> Youtube History Statistics </h1>
+            <h1> <a href="index.html">Youtube History Statistics </a> </h1>
             <p><a  href="tutorial.html">How to get watch-history.json</a></p>
         </div>
     </header>
@@ -24,6 +24,7 @@
                 <input type="file" id="fileInput" accept=".json">
                 <img src="img/upload.svg"/>
                 <label for="fileInput">Upload watch-history.json</label>
+                <p id="uploadError" style="display: none; color: red; margin-top: 1em;"></p>
             </div>
             <div id="faq">
                 <h2> FAQ </h2>
@@ -49,7 +50,7 @@
                     </div>
             </div>
         </div>
-
+            
         <!--Stats-->   
         <div id="statsContent" style="display: none;">
             <div class="stats-grid">
@@ -69,7 +70,7 @@
         </div>
         
         <!--Filter-->
-        <div id="filterSection">
+        <div id="filterSection" style="display: none;">
             <div class="slider-container">
                 <div class="slider-label">Select Year Range</div>
                 <div id="yearSlider"></div>
@@ -77,24 +78,24 @@
             </div>
         </div>
 
-
             <!--Charts-->
-        <div class="chart-container">
-            <h2> Top Channels</h2>
-            <canvas id="channelsChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <h2> Videos Watched Per Month </h2>
-            <canvas id="monthlyChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <h2> Average Videos Per Day of Week </h2>
-            <canvas id="dailyChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <h2> Watch Activity by Hour </h2>
-            <canvas id="hourlyChart"></canvas>
-        </div>
+        <div id="charts" style="display: none;">
+            <div class="chart-container">
+                <h2> Top Channels</h2>
+                <canvas id="channelsChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2> Videos Watched Per Month </h2>
+                <canvas id="monthlyChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2> Average Videos Per Day of Week </h2>
+                <canvas id="dailyChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2> Watch Activity by Hour </h2>
+                <canvas id="hourlyChart"></canvas>
+            </div>
 
 
     </main>

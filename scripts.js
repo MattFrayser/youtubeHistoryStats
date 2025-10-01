@@ -3,61 +3,113 @@ const statsContent = document.getElementById('statsContent')
 const uploadSection = document.querySelector('.upload-section')
 const yearDisplay = document.getElementById('yearDisplay');
 const faq = document.getElementById('faq')
-const filterSection = document.getElementById('filter-section')
+const filterSection = document.getElementById('filterSection')
+const chartSection = document.getElementById('charts')
+const uploadError = document.getElementById('uploadError')
 
 let charts = {};
 let videos = [];
 let adsCount = 0;
 let yearSlider = null;
 
-fileInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
+async function handleFile(file) {
     if (!file) return;
 
-    console.log('File selected:', file.name, file.size, 'bytes');
+    uploadError.style.display = 'none';
+
+    if (file.name !== 'watch-history.json') {
+        uploadError.textContent = 'Please upload a file named "watch-history.json"';
+        uploadError.style.display = 'block';
+        fileInput.value = '';
+        return;
+    }
+
+    // Check file size (warn if > 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+        if (!confirm('This file is very large and may take a while to process. Continue?')) {
+            fileInput.value = '';
+            return;
+        }
+    }
+
     uploadSection.style.display = 'none';
     faq.style.display = 'none';
+
     statsContent.style.display = 'none';
+    filterSection.style.display = 'none';
+    chartSection.style.display = 'none';
 
     try {
         const text = await file.text();
         const data = JSON.parse(text);
-        console.log('JSON parsed successfully, entries:', data.length);
+
+        if (!Array.isArray(data)) {
+            throw new Error('Invalid file format');
+        }
+
         process(data);
     } catch (err) {
         console.error(err);
+        uploadError.textContent = 'Error processing file. Please make sure it is a valid watch-history.json file.';
+        uploadError.style.display = 'block';
+        uploadSection.style.display = 'flex';
+        faq.style.display = 'block';
+        fileInput.value = '';
     }
+}
+
+fileInput.addEventListener('change', async (e) => {
+    handleFile(e.target.files[0]);
+});
+
+// Drag and drop
+uploadSection.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadSection.classList.add('dragover');
+});
+
+uploadSection.addEventListener('dragleave', () => {
+    uploadSection.classList.remove('dragover');
+});
+
+uploadSection.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadSection.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    handleFile(file);
 });
 
 function updateStats() {
     if (videos.length === 0) return;
 
     const [minYear, maxYear] = yearSlider.get().map(v => parseInt(v));
-    
+
     const filteredVideos = videos.filter(v => {
         const year = v.t.getFullYear();
         return year >= minYear && year <= maxYear;
     });
 
-    console.log('Filtered videos:', filteredVideos.length, 'for years', minYear, '-', maxYear);
+    if (filteredVideos.length === 0) {
+        statsContent.style.display = 'none';
+        chartSection.style.display = 'none';
+        return;
+    }
 
     const stats = calculateStats(filteredVideos, adsCount);
-    console.log('Stats calculated:', stats);
-    
+
     displayStats(stats);
     createCharts(stats);
-    
+
     statsContent.style.display = 'block';
+    chartSection.style.display = 'block';
 }
 
 function process(rawData) {
-    
-    // count adds
+
     adsCount = rawData.filter(v =>
        v.details?.some(d => d.name === 'From Google Ads') || !v.subtitles?.[0]?.name
-    ).length; 
-    
-    // format data
+    ).length;
+
     videos = rawData
         .filter(v =>
             v.title && v.titleUrl && v.subtitles?.[0]?.name &&
@@ -66,23 +118,38 @@ function process(rawData) {
         .map(v => ({
             t: new Date(v.time),
             c: v.subtitles[0].name,
-        }));
-    console.log('Videos after filtering:', videos.length);
-    
+        }))
+        .filter(v => !isNaN(v.t.getTime())); // Remove invalid dates
+
+    if (videos.length === 0) {
+        uploadError.textContent = 'No valid videos found in file. Please make sure this is a valid watch-history.json file.';
+        uploadError.style.display = 'block';
+        uploadSection.style.display = 'flex';
+        faq.style.display = 'block';
+        return;
+    }
+
     // Get year range from data
     const years = videos.map(v => v.t.getFullYear());
     const minDataYear = Math.min(...years);
     const maxDataYear = Math.max(...years);
 
-    // Initialize noUiSlider
+    // noUiSlider
     const slider = document.getElementById('yearSlider');
+    if (yearSlider) {
+        yearSlider.destroy();
+    }
+
+    // Handle single year case
+    const sliderMax = minDataYear === maxDataYear ? maxDataYear + 1 : maxDataYear;
+
     yearSlider = noUiSlider.create(slider, {
         start: [minDataYear, maxDataYear],
         connect: true,
         step: 1,
         range: {
             'min': minDataYear,
-            'max': maxDataYear
+            'max': sliderMax
         },
         format: {
             to: value => Math.round(value),
@@ -90,7 +157,6 @@ function process(rawData) {
         }
     });
 
-    // Update display and stats on slider change
     yearSlider.on('update', (values) => {
         const [minYear, maxYear] = values.map(v => parseInt(v));
         yearDisplay.textContent = `${minYear} - ${maxYear}`;
@@ -101,8 +167,8 @@ function process(rawData) {
     updateStats()
 
     filterSection.style.display = 'block';
-    // clear from mem 
-    rawData = null 
+
+    rawData = null // clear from mem
 }
 
 function calculateStats(videos, adsCount) {
@@ -179,7 +245,6 @@ function createCharts(stats) {
     Chart.defaults.color = "#888";
     Chart.defaults.borderColor = gridColor;
     
-    // Monthly chart 
     charts.monthly = new Chart(document.getElementById('monthlyChart'), {
         type: 'line',
         data: {
@@ -204,7 +269,6 @@ function createCharts(stats) {
         }
     });
 
-    // Daily chart (day of week averages)
     charts.daily = new Chart(document.getElementById('dailyChart'), {
         type: 'bar',
         data: {
@@ -234,7 +298,6 @@ function createCharts(stats) {
         }
     });
 
-    // Channels chart
     charts.channels = new Chart(document.getElementById('channelsChart'), {
         type: 'bar',
         data: {
@@ -257,7 +320,6 @@ function createCharts(stats) {
         }
     });
 
-    // Hourly chart
     charts.hourly = new Chart(document.getElementById('hourlyChart'), {
         type: 'bar',
         data: {

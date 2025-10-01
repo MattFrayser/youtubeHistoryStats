@@ -5,35 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Youtube History</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <div class="navbar">
             <h1> Youtube History Statistics </h1>
-            <p> Privacy Policy ⌄</p>
-
+            <p><a  href="tutorial.html">How to get watch-history.json</a></p>
         </div>
-
     </header>
+
     <main>
         <!--Upload Section-->
         <div>
             <div class="upload-section">
                 <input type="file" id="fileInput" accept=".json">
+                <img src="img/upload.svg"/>
                 <label for="fileInput">Upload watch-history.json</label>
-                <p> All data will remain private in your browser.</p>
             </div>
-            <div class="tutorial">
-                <span class="step"> Navigate to Takeout </span>
-                <span class="step"> Deselect all </span>
-                <span class="step"> Select YouTube and Youtube Music </span>
-                <span class="step"> Click all youtube data included </span>
-                <span class="step"> Deselect all, but history</span>
-                <span class="step"> Click multiple formats</span>
-                <span class="step"> Change history to JSON</span>
-                <span class="step"> Next step</span>
-                <span class="step"> Export</span>
+            <div id="faq">
+                <h2> FAQ </h2>
+                    <div class="faq-bubble">
+                        <h3> Is my data safe?</h3>
+                        <p> Yes. All processing happens in your browser. Nothing is uploaded to any server. </p>
+                    </div>
+                    <div class="faq-bubble">
+                        <h3> Why are some videos missing? </h3>
+                        <p> Ads and videos without channel names are filtered out. Only actual content with identifiable channels is counted.</p>
+                    </div>
+                    <div class="faq-bubble">
+                        <h3> Why don't the numbers match YouTube's count?</h3>
+                        <p> Google Takeout only includes data from when watch history was enabled. Private/incognito views aren't tracked.</p>
+                    </div>
+                    <div class="faq-bubble">
+                        <h3> Can I filter Shorts separately from regular videos?</h3>
+                        <p> Unfortunately, Google Takeout doesn't provide any way to distinguish between Shorts and regular videos in the watch history data, so they're counted together.</p>
+                    </div>
+                   <div class="faq-bubble">
+                        <h3> Does this work on mobile? </h3>
+                        <p> Yes, but charts are easier to read on larger screens. </p>
+                    </div>
             </div>
         </div>
 
@@ -53,6 +66,34 @@
                     <div class="stat-label">Ads Watched</div>
                 </div>
             </div>
+        </div>
+        
+        <!--Filter-->
+        <div id="filterSection">
+            <div class="slider-container">
+                <div class="slider-label">Select Year Range</div>
+                <div id="yearSlider"></div>
+                <div class="year-display" id="yearDisplay">2005 - 2025</div>
+            </div>
+        </div>
+
+
+            <!--Charts-->
+        <div class="chart-container">
+            <h2> Top Channels</h2>
+            <canvas id="channelsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2> Videos Watched Per Month </h2>
+            <canvas id="monthlyChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2> Average Videos Per Day of Week </h2>
+            <canvas id="dailyChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2> Watch Activity by Hour </h2>
+            <canvas id="hourlyChart"></canvas>
         </div>
 
 
